@@ -2,6 +2,10 @@
 
 A fine-tuned BERT model that classifies news headlines and articles into one of four topic categories: **World**, **Sports**, **Business**, and **Sci/Tech**. Built with Hugging Face Transformers and deployed as an interactive Streamlit app.
 
+## 🔗 Live Demo
+
+Try the deployed app here: **[zknewsclassifier.streamlit.app](https://zknewsclassifier.streamlit.app/)**
+
 ## 🎯 Problem Statement
 
 News platforms handle large volumes of articles daily and need an automated way to categorize them by topic. Manually tagging each article is slow and doesn't scale, creating a need for a model that can classify news text accurately and in real time.
