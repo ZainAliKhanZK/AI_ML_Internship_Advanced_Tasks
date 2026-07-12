@@ -1,5 +1,5 @@
 import torch
-import app as st
+import streamlit as st
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 MODEL_PATH = "ZainAliKhanZAK/bert_agnews_classifier"          # fine-tuned model weights live here
