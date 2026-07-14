@@ -83,7 +83,7 @@ def build_retriever():
     chunks = text_splitter.split_documents(documents)
 
     embeddings = GoogleGenerativeAIEmbeddings(
-        model="models/text-embedding-004",
+        model="models/gemini-embedding-001",
         google_api_key=gem_key,
     )
     vectorstore = Chroma.from_documents(
