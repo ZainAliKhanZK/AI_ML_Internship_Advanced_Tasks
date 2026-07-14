@@ -4,7 +4,7 @@ A fine-tuned BERT model that classifies news headlines and articles into one of 
 
 ## 🔗 Live Demo
 
-Try the deployed app here: **[zknewsclassifier.streamlit.app](https://zknewsclassifier.streamlit.app/)**
+Try the deployed app here: **[zknewsclassifier](https://zknewsclassifier.streamlit.app/)**
 
 ## 🎯 Problem Statement
 
