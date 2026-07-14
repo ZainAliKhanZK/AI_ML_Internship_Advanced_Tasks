@@ -10,6 +10,7 @@ Requires environment variables (or Streamlit secrets) for API keys:
 """
 
 import os
+import time
 import requests
 import streamlit as st
 
@@ -79,7 +80,9 @@ def build_retriever():
         if content:
             documents.append(Document(page_content=content, metadata={"title": topic}))
 
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+    # Larger chunk size keeps the total chunk count (and thus embedding API
+    # calls) well under Gemini's free-tier limit of 100 requests/minute.
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=150)
     chunks = text_splitter.split_documents(documents)
 
     embeddings = GoogleGenerativeAIEmbeddings(
