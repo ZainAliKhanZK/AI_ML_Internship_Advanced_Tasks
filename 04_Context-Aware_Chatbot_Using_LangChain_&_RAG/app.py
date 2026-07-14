@@ -24,6 +24,9 @@ from langchain_classic.chains import ConversationalRetrievalChain
 # Config
 # ---------------------------------------------------------------------------
 
+HEADERS = {"User-Agent": "ZainRAGChatbot/1.0 (student project; contact: your_email@example.com)"}
+TOPICS = ["Machine learning", "Artificial intelligence", "Neural network"]
+
 st.set_page_config(page_title="Context-Aware RAG Chatbot", page_icon="📚")
 st.title("📚 Context-Aware RAG Chatbot")
 st.write("Ask me anything about Machine Learning, Artificial Intelligence, or Neural Networks.")
