@@ -10,16 +10,15 @@ Requires environment variables (or Streamlit secrets) for API keys:
 """
 
 import os
-import time
 import requests
 import streamlit as st
 
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_huggingface import HuggingFaceEndpoint, ChatHuggingFace
+from langchain_huggingface import HuggingFaceEmbeddings, HuggingFaceEndpoint, ChatHuggingFace
 from langchain_chroma import Chroma
 from langchain_groq import ChatGroq
-from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_classic.memory import ConversationBufferMemory
 from langchain_classic.chains import ConversationalRetrievalChain
 
@@ -80,15 +79,10 @@ def build_retriever():
         if content:
             documents.append(Document(page_content=content, metadata={"title": topic}))
 
-    # Larger chunk size keeps the total chunk count (and thus embedding API
-    # calls) well under Gemini's free-tier limit of 100 requests/minute.
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=150)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
     chunks = text_splitter.split_documents(documents)
 
-    embeddings = GoogleGenerativeAIEmbeddings(
-        model="models/gemini-embedding-001",
-        google_api_key=gem_key,
-    )
+    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
     vectorstore = Chroma.from_documents(
         documents=chunks,
         embedding=embeddings,
