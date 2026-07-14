@@ -10,3 +10,4 @@ langchain-google-genai
 chromadb
 requests
 sentence-transformers
+torchvision
