@@ -60,7 +60,7 @@ def build_retriever():
     )
 
     vectorstore = Chroma(
-        persist_directory="./chroma_db",
+        persist_directory="04_Context-Aware_Chatbot_Using_LangChain_&_RAG/chroma_db",
         embedding_function=embeddings,
     )
 
