@@ -13,8 +13,6 @@ import os
 import requests
 import streamlit as st
 
-from langchain_core.documents import Document
-from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings, HuggingFaceEndpoint, ChatHuggingFace
 from langchain_chroma import Chroma
 from langchain_groq import ChatGroq
@@ -25,8 +23,6 @@ from langchain_classic.chains import ConversationalRetrievalChain
 # ---------------------------------------------------------------------------
 # Config
 # ---------------------------------------------------------------------------
-HEADERS = {"User-Agent": "ZainRAGChatbot/1.0 (student project; contact: your_email@example.com)"}
-TOPICS = ["Machine learning", "Artificial intelligence", "Neural network"]
 
 st.set_page_config(page_title="Context-Aware RAG Chatbot", page_icon="📚")
 st.title("📚 Context-Aware RAG Chatbot")
@@ -51,44 +47,26 @@ with st.sidebar:
 # ---------------------------------------------------------------------------
 # Wikipedia loading (same function as the notebook)
 # ---------------------------------------------------------------------------
-def fetch_full_wikipedia_page(title):
-    url = "https://en.wikipedia.org/w/api.php"
-    params = {
-        "action": "query",
-        "format": "json",
-        "titles": title,
-        "prop": "extracts",
-        "explaintext": True,
-    }
-    response = requests.get(url, params=params, headers=HEADERS)
-    data = response.json()
-    pages = data["query"]["pages"]
-    page = next(iter(pages.values()))
-    return page.get("extract", "")
-
 
 # ---------------------------------------------------------------------------
 # Build the retriever once -- expensive part (Wikipedia fetch, chunking,
 # embedding), shared across whichever LLM is selected.
 # ---------------------------------------------------------------------------
-@st.cache_resource(show_spinner="Setting up knowledge base (first run only)...")
+@st.cache_resource(show_spinner="Loading knowledge base...")
 def build_retriever():
-    documents = []
-    for topic in TOPICS:
-        content = fetch_full_wikipedia_page(topic)
-        if content:
-            documents.append(Document(page_content=content, metadata={"title": topic}))
 
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
-    chunks = text_splitter.split_documents(documents)
-
-    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-    vectorstore = Chroma.from_documents(
-        documents=chunks,
-        embedding=embeddings,
-        persist_directory="./chroma_db",
+    embeddings = HuggingFaceEmbeddings(
+        model_name="sentence-transformers/all-MiniLM-L6-v2"
     )
-    return vectorstore.as_retriever(search_kwargs={"k": 3})
+
+    vectorstore = Chroma(
+        persist_directory="./chroma_db",
+        embedding_function=embeddings,
+    )
+
+    return vectorstore.as_retriever(
+        search_kwargs={"k": 3}
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -100,7 +78,7 @@ def build_llm(model_choice: str):
         if not groq_key:
             st.error("No Groq API key found. Set GROQ as an environment variable or Streamlit secret.")
             st.stop()
-        return ChatGroq(model="llama-3.3-70b-versatile", temperature=0.3, api_key=groq_key)
+        return ChatGroq(model="llama-3.1-8b-instant", temperature=0.3, api_key=groq_key)
 
     if model_choice == "gemini":
         if not gem_key:
@@ -125,8 +103,8 @@ def build_llm(model_choice: str):
 # ---------------------------------------------------------------------------
 # Build the chain: retriever (shared) + selected LLM + fresh memory
 # ---------------------------------------------------------------------------
-@st.cache_resource(show_spinner=False)
 def build_chain(model_choice: str):
+
     retriever = build_retriever()
     llm = build_llm(model_choice)
 
@@ -144,7 +122,9 @@ def build_chain(model_choice: str):
     )
 
 
-qa_chain = build_chain(selected_model)
+if "qa_chain" not in st.session_state:
+    st.session_state.qa_chain = build_chain(selected_model)
+    st.session_state.active_model = selected_model
 
 # ---------------------------------------------------------------------------
 # Chat UI
@@ -152,9 +132,13 @@ qa_chain = build_chain(selected_model)
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-if st.session_state.get("active_model") != selected_model:
-    st.session_state.messages = []
+if st.session_state.active_model != selected_model:
+
+    st.session_state.qa_chain = build_chain(selected_model)
+
     st.session_state.active_model = selected_model
+
+    st.session_state.messages = []
 
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
@@ -168,7 +152,7 @@ if user_input:
 
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
-            result = qa_chain.invoke({"question": user_input})
+            result = st.session_state.qa_chain.invoke({"question": user_input})
             answer = result["answer"]
             sources = result.get("source_documents", [])
 
@@ -185,6 +169,10 @@ if user_input:
 
     st.session_state.messages.append({"role": "assistant", "content": answer})
 
-if st.button("Clear conversation"):
+if st.button("🗑 Clear Conversation"):
+
     st.session_state.messages = []
+
+    st.session_state.qa_chain = build_chain(selected_model)
+
     st.rerun()
