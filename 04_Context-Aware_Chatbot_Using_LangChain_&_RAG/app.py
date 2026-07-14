@@ -57,14 +57,14 @@ def build_retriever():
 
     embeddings = HuggingFaceEmbeddings(
     model_name="sentence-transformers/all-MiniLM-L6-v2"
-)
+    )
 
 vectorstore = Chroma(
     persist_directory="./chroma_db",
     embedding_function=embeddings,
-)
+    )
 
-return vectorstore.as_retriever(search_kwargs={"k": 3})
+    return vectorstore.as_retriever(search_kwargs={"k": 3})
 
 @st.cache_resource
 def load_embeddings():
