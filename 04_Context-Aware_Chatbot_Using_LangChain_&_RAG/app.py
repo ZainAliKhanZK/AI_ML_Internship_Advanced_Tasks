@@ -50,7 +50,23 @@ with st.sidebar:
 # ---------------------------------------------------------------------------
 # Wikipedia loading (same function as the notebook)
 # ---------------------------------------------------------------------------
-
+# ---------------------------------------------------------------------------
+# Wikipedia loading (same function as the notebook)
+# ---------------------------------------------------------------------------
+def fetch_full_wikipedia_page(title):
+    url = "https://en.wikipedia.org/w/api.php"
+    params = {
+        "action": "query",
+        "format": "json",
+        "titles": title,
+        "prop": "extracts",
+        "explaintext": True,
+    }
+    response = requests.get(url, params=params, headers=HEADERS)
+    data = response.json()
+    pages = data["query"]["pages"]
+    page = next(iter(pages.values()))
+    return page.get("extract", "")
 # ---------------------------------------------------------------------------
 # Build the retriever once -- expensive part (Wikipedia fetch, chunking,
 # embedding), shared across whichever LLM is selected.
