@@ -12,7 +12,7 @@ Requires environment variables (or Streamlit secrets) for API keys:
 import os
 import requests
 import streamlit as st
-
+from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEndpoint, ChatHuggingFace
@@ -83,11 +83,10 @@ def build_retriever():
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
     chunks = text_splitter.split_documents(documents)
 
-    embeddings = HuggingFaceEndpointEmbeddings(
-    model="sentence-transformers/all-MiniLM-L6-v2",
-    huggingfacehub_api_token=hf_key,
+    embeddings = GoogleGenerativeAIEmbeddings(
+        model="models/embedding-001",
+        google_api_key=gem_key,
     )
-    # embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
     vectorstore = Chroma.from_documents(
         documents=chunks,
         embedding=embeddings,
