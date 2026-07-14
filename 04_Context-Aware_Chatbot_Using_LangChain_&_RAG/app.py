@@ -64,9 +64,8 @@ vectorstore = Chroma(
     embedding_function=embeddings,
 )
 
-    return vectorstore.as_retriever(
-        search_kwargs={"k": 3}
-    )
+return vectorstore.as_retriever(search_kwargs={"k": 3})
+
 @st.cache_resource
 def load_embeddings():
     return HuggingFaceEmbeddings(
