@@ -52,20 +52,30 @@ with st.sidebar:
 # Build the retriever once -- expensive part (Wikipedia fetch, chunking,
 # embedding), shared across whichever LLM is selected.
 # ---------------------------------------------------------------------------
+
+CHROMA_DIR = "./chroma_db"
+
 @st.cache_resource(show_spinner="Loading knowledge base...")
 def build_retriever():
+    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
-    embeddings = HuggingFaceEmbeddings(
-    model_name="sentence-transformers/all-MiniLM-L6-v2"
-    )
-
-    vectorstore = Chroma(
-    persist_directory="./chroma_db",
-    embedding_function=embeddings,
-    )
+    # If chroma_db is already populated (as you've uploaded it), just load it —
+    # don't re-fetch Wikipedia and re-embed everything on every cold start.
+    if os.path.exists(CHROMA_DIR) and os.listdir(CHROMA_DIR):
+        vectorstore = Chroma(persist_directory=CHROMA_DIR, embedding_function=embeddings)
+    else:
+        documents = []
+        for topic in TOPICS:
+            content = fetch_full_wikipedia_page(topic)
+            if content:
+                documents.append(Document(page_content=content, metadata={"title": topic}))
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+        chunks = text_splitter.split_documents(documents)
+        vectorstore = Chroma.from_documents(
+            documents=chunks, embedding=embeddings, persist_directory=CHROMA_DIR
+        )
 
     return vectorstore.as_retriever(search_kwargs={"k": 3})
-
 @st.cache_resource
 def load_embeddings():
     return HuggingFaceEmbeddings(
