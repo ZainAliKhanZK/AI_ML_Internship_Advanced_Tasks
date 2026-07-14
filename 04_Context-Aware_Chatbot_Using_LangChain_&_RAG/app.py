@@ -12,16 +12,15 @@ Requires environment variables (or Streamlit secrets) for API keys:
 import os
 import requests
 import streamlit as st
-from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
+
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEndpoint, ChatHuggingFace
 from langchain_chroma import Chroma
 from langchain_groq import ChatGroq
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
 from langchain_classic.memory import ConversationBufferMemory
 from langchain_classic.chains import ConversationalRetrievalChain
-from langchain_huggingface import HuggingFaceEmbeddings, HuggingFaceEndpoint, ChatHuggingFace, HuggingFaceEndpointEmbeddings
 
 # ---------------------------------------------------------------------------
 # Config
