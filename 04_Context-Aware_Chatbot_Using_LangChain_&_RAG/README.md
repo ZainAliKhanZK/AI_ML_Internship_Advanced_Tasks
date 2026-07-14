@@ -4,7 +4,7 @@ A conversational chatbot that retrieves answers from a custom knowledge base usi
 
 ## 🔗 Live Demo
 
-Try the deployed app here: **[zk chat app](https://zkchat.streamlit.app/)**
+Try the deployed app here: **[zkchatapp](https://zkchat.streamlit.app/)**
 
 ## 🎯 Problem Statement
 
