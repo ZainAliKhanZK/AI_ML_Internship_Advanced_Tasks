@@ -42,7 +42,7 @@ A conversational chatbot built with LangChain and ChromaDB that retrieves answer
 
 - **Result:** Verified accurate retrieval and correct pronoun/context resolution across turns; deployed with switchable Groq, Gemini, and Hugging Face backends, each with independent memory and source-attributed answers
 - **Tech:** LangChain, ChromaDB, `sentence-transformers/all-MiniLM-L6-v2`, Streamlit, Groq/Gemini/Hugging Face APIs
-- 🔗 [Live Demo](https://zknewsclassifier.streamlit.app/) · 📂 [Repository](https://github.com/ZainAliKhanZK/rag-chatbot)
+- 🔗 [Live Demo](https://zkchat.streamlit.app/) · 📂 [Repository](https://github.com/ZainAliKhanZK/rag-chatbot)
 
 ---
 
