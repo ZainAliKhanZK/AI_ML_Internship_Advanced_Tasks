@@ -1,3 +1,6 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch
+sentence-transformers
 streamlit
 langchain
 langchain-community
@@ -9,4 +12,3 @@ langchain-groq
 langchain-google-genai
 chromadb
 requests
-sentence-transformers
