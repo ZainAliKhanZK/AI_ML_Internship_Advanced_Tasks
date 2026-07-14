@@ -2,6 +2,10 @@
 
 A conversational chatbot that retrieves answers from a custom knowledge base using Retrieval-Augmented Generation (RAG), while maintaining memory of the conversation across turns. Built with LangChain, ChromaDB, and Streamlit, with support for switching between multiple LLM providers.
 
+## 🔗 Live Demo
+
+Try the deployed app here: **[zk chat app](https://zkchat.streamlit.app/)**
+
 ## 🎯 Problem Statement
 
 Standard chatbots either rely solely on an LLM's pretrained knowledge (which can be outdated or lack domain-specific detail) or have no memory of earlier turns in a conversation, making multi-turn interactions feel disconnected and repetitive.
