@@ -15,12 +15,13 @@ import streamlit as st
 
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_huggingface import HuggingFaceEmbeddings, HuggingFaceEndpoint, ChatHuggingFace
+from langchain_huggingface import HuggingFaceEndpoint, ChatHuggingFace
 from langchain_chroma import Chroma
 from langchain_groq import ChatGroq
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_classic.memory import ConversationBufferMemory
 from langchain_classic.chains import ConversationalRetrievalChain
+from langchain_huggingface import HuggingFaceInferenceAPIEmbeddings
 
 # ---------------------------------------------------------------------------
 # Config
@@ -82,7 +83,11 @@ def build_retriever():
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
     chunks = text_splitter.split_documents(documents)
 
-    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+    embeddings = HuggingFaceInferenceAPIEmbeddings(
+    api_key=hf_key,
+    model_name="sentence-transformers/all-MiniLM-L6-v2",
+    )
+    # embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
     vectorstore = Chroma.from_documents(
         documents=chunks,
         embedding=embeddings,
