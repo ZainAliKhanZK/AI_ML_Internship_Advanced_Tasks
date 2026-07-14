@@ -12,7 +12,7 @@ Fine-tuned `bert-base-uncased` on the AG News dataset to classify news headlines
 
 - **Result:** 94.6% accuracy / 94.6% macro F1-score on the held-out test set
 - **Tech:** Hugging Face Transformers & Datasets, PyTorch, Streamlit, Hugging Face Hub
-- 🔗 [Live Demo](https://zknewsclassifier.streamlit.app/) · 🤗 [Model](https://huggingface.co/ZainAliKhanZK/bert_agnews_classifier) · 📂 [Repository](https://github.com/ZainAliKhanZK/bert-agnews-classifier)
+- 🔗 [Live Demo](https://zknewsclassifier.streamlit.app/) · 🤗 [Model](https://huggingface.co/ZainAliKhanZAK/bert_agnews_classifier) · 📂 [Repository](https://github.com/ZainAliKhanZK/bert-agnews-classifier)
 
 ---
 
