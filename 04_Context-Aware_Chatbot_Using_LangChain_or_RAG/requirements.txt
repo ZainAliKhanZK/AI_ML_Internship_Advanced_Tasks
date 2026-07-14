@@ -1,0 +1,12 @@
+streamlit
+langchain
+langchain-community
+langchain-core
+langchain-classic
+langchain-huggingface
+langchain-chroma
+langchain-groq
+langchain-google-genai
+chromadb
+requests
+wikipedia
