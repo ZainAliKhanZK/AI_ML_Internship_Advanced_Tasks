@@ -56,18 +56,24 @@ with st.sidebar:
 def build_retriever():
 
     embeddings = HuggingFaceEmbeddings(
-        model_name="sentence-transformers/all-MiniLM-L6-v2"
-    )
+    model_name="sentence-transformers/all-MiniLM-L6-v2"
+)
 
-    vectorstore = Chroma(
-        persist_directory="04_Context-Aware_Chatbot_Using_LangChain_&_RAG/chroma_db",
-        embedding_function=embeddings,
-    )
+vectorstore = Chroma(
+    persist_directory="./chroma_db",
+    embedding_function=embeddings,
+)
 
     return vectorstore.as_retriever(
         search_kwargs={"k": 3}
     )
+@st.cache_resource
+def load_embeddings():
+    return HuggingFaceEmbeddings(
+        model_name="sentence-transformers/all-MiniLM-L6-v2"
+    )
 
+embeddings = load_embeddings()
 
 # ---------------------------------------------------------------------------
 # Build the LLM based on the sidebar selection -- cheap, cached per model
