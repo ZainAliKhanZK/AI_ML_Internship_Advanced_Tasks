@@ -13,6 +13,8 @@ import os
 import requests
 import streamlit as st
 
+from langchain_core.documents import Document
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings, HuggingFaceEndpoint, ChatHuggingFace
 from langchain_chroma import Chroma
 from langchain_groq import ChatGroq
@@ -23,7 +25,6 @@ from langchain_classic.chains import ConversationalRetrievalChain
 # ---------------------------------------------------------------------------
 # Config
 # ---------------------------------------------------------------------------
-
 HEADERS = {"User-Agent": "ZainRAGChatbot/1.0 (student project; contact: your_email@example.com)"}
 TOPICS = ["Machine learning", "Artificial intelligence", "Neural network"]
 
@@ -50,9 +51,6 @@ with st.sidebar:
 # ---------------------------------------------------------------------------
 # Wikipedia loading (same function as the notebook)
 # ---------------------------------------------------------------------------
-# ---------------------------------------------------------------------------
-# Wikipedia loading (same function as the notebook)
-# ---------------------------------------------------------------------------
 def fetch_full_wikipedia_page(title):
     url = "https://en.wikipedia.org/w/api.php"
     params = {
@@ -67,41 +65,31 @@ def fetch_full_wikipedia_page(title):
     pages = data["query"]["pages"]
     page = next(iter(pages.values()))
     return page.get("extract", "")
+
+
 # ---------------------------------------------------------------------------
 # Build the retriever once -- expensive part (Wikipedia fetch, chunking,
 # embedding), shared across whichever LLM is selected.
 # ---------------------------------------------------------------------------
-
-CHROMA_DIR = "./chroma_db"
-
-@st.cache_resource(show_spinner="Loading knowledge base...")
+@st.cache_resource(show_spinner="Setting up knowledge base (first run only)...")
 def build_retriever():
+    documents = []
+    for topic in TOPICS:
+        content = fetch_full_wikipedia_page(topic)
+        if content:
+            documents.append(Document(page_content=content, metadata={"title": topic}))
+
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+    chunks = text_splitter.split_documents(documents)
+
     embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-
-    # If chroma_db is already populated (as you've uploaded it), just load it —
-    # don't re-fetch Wikipedia and re-embed everything on every cold start.
-    if os.path.exists(CHROMA_DIR) and os.listdir(CHROMA_DIR):
-        vectorstore = Chroma(persist_directory=CHROMA_DIR, embedding_function=embeddings)
-    else:
-        documents = []
-        for topic in TOPICS:
-            content = fetch_full_wikipedia_page(topic)
-            if content:
-                documents.append(Document(page_content=content, metadata={"title": topic}))
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
-        chunks = text_splitter.split_documents(documents)
-        vectorstore = Chroma.from_documents(
-            documents=chunks, embedding=embeddings, persist_directory=CHROMA_DIR
-        )
-
-    return vectorstore.as_retriever(search_kwargs={"k": 3})
-@st.cache_resource
-def load_embeddings():
-    return HuggingFaceEmbeddings(
-        model_name="sentence-transformers/all-MiniLM-L6-v2"
+    vectorstore = Chroma.from_documents(
+        documents=chunks,
+        embedding=embeddings,
+        persist_directory="./chroma_db",
     )
+    return vectorstore.as_retriever(search_kwargs={"k": 3})
 
-embeddings = load_embeddings()
 
 # ---------------------------------------------------------------------------
 # Build the LLM based on the sidebar selection -- cheap, cached per model
@@ -112,7 +100,7 @@ def build_llm(model_choice: str):
         if not groq_key:
             st.error("No Groq API key found. Set GROQ as an environment variable or Streamlit secret.")
             st.stop()
-        return ChatGroq(model="llama-3.1-8b-instant", temperature=0.3, api_key=groq_key)
+        return ChatGroq(model="llama-3.3-70b-versatile", temperature=0.3, api_key=groq_key)
 
     if model_choice == "gemini":
         if not gem_key:
@@ -137,8 +125,8 @@ def build_llm(model_choice: str):
 # ---------------------------------------------------------------------------
 # Build the chain: retriever (shared) + selected LLM + fresh memory
 # ---------------------------------------------------------------------------
+@st.cache_resource(show_spinner=False)
 def build_chain(model_choice: str):
-
     retriever = build_retriever()
     llm = build_llm(model_choice)
 
@@ -156,9 +144,7 @@ def build_chain(model_choice: str):
     )
 
 
-if "qa_chain" not in st.session_state:
-    st.session_state.qa_chain = build_chain(selected_model)
-    st.session_state.active_model = selected_model
+qa_chain = build_chain(selected_model)
 
 # ---------------------------------------------------------------------------
 # Chat UI
@@ -166,13 +152,9 @@ if "qa_chain" not in st.session_state:
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-if st.session_state.active_model != selected_model:
-
-    st.session_state.qa_chain = build_chain(selected_model)
-
-    st.session_state.active_model = selected_model
-
+if st.session_state.get("active_model") != selected_model:
     st.session_state.messages = []
+    st.session_state.active_model = selected_model
 
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
@@ -186,7 +168,7 @@ if user_input:
 
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
-            result = st.session_state.qa_chain.invoke({"question": user_input})
+            result = qa_chain.invoke({"question": user_input})
             answer = result["answer"]
             sources = result.get("source_documents", [])
 
@@ -203,10 +185,6 @@ if user_input:
 
     st.session_state.messages.append({"role": "assistant", "content": answer})
 
-if st.button("🗑 Clear Conversation"):
-
+if st.button("Clear conversation"):
     st.session_state.messages = []
-
-    st.session_state.qa_chain = build_chain(selected_model)
-
     st.rerun()
